@@ -17,7 +17,7 @@ SQL-инъекция - это уязвимость веб-безопасност
 - Оператор `INSERT`: вставляемые значения
 ## Общая информация
 - Внедрение выражения `' or 1=1--` делает следующий SQL-запрос `SELECT <columns> FROM <table_name> WHERE <some_column> = '' or 1=1--`, что приводит к получению значений всех строк из таблицы, так как `1=1` всегда `true`
-- Атакующий может обойти аутентификацию, если SQL-запрос в таблицу с пользователями уязвим. Внедрение `--` после значения логина позволит обойти проверку пароля (`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`)
+- Атакующий может обойти аутентификацию, если SQL-запрос в таблицу с пользователями уязвим. Внедрение `--` после значения логина позволит обойти проверку пароля (`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`). Полезные нагрузки для обхода аутентификации: [Auth_Bypass.txt](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/10d41d2e7de0de20c424c90ceb118a5993110081/SQL%20Injection/Intruder/Auth_Bypass.txt)
 - SQLi может быть как в URL параметрах (`https://<url>/filter?Category=<param>`->`SELECT * FROM product WHERE category='<param>')`, так и в куки (`TrackId=<cookie>`-> `SELECT trackId FROM ids where trackId='<cookie>'`)
 ## Виды
 ### Union-based
