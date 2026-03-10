@@ -3,6 +3,7 @@ SQL-инъекция - это уязвимость веб-безопасност
 - [SQL injection Learning Path PortSwigger Academy](https://portswigger.net/web-security/learning-paths/sql-injection/)
 - [SQLi Cheat Sheet PortSwigger Academy](https://portswigger.net/web-security/sql-injection/cheat-sheet)
 - [PayloadAllTheThings SQL Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection)
+- [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
 ## Инструменты
 - [sqlmap](https://github.com/sqlmapproject/sqlmap): `sqlmap -u <url> --data <login=1&password=1>`, `sqlmap -u <url> --cookie='id=1; PHPSESSID=abcdef' -p 'id' --param-filter='COOKIE' --skip='PHPSESSID' --level=2` (SQLi в куки `id`)
 ## Обнаружение SQLi
@@ -18,6 +19,12 @@ SQL-инъекция - это уязвимость веб-безопасност
 - Внедрение выражения `' or 1=1--` делает следующий SQL-запрос `SELECT <columns> FROM <table_name> WHERE <some_column> = '' or 1=1--`, что приводит к получению значений всех строк из таблицы, так как `1=1` всегда `true`
 - Атакующий может обойти аутентификацию, если SQL-запрос в таблицу с пользователями уязвим. Внедрение `--` после значения логина позволит обойти проверку пароля (`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`). Полезные нагрузки для обхода аутентификации: [Auth_Bypass.txt](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/10d41d2e7de0de20c424c90ceb118a5993110081/SQL%20Injection/Intruder/Auth_Bypass.txt)
 - SQLi может быть как в URL параметрах (`https://<url>/filter?Category=<param>`->`SELECT * FROM product WHERE category='<param>')`, так и в куки (`TrackId=<cookie>`-> `SELECT trackId FROM ids where trackId='<cookie>'`)
+- Приложения могут получать информацию в виде JSON, XML, которая далее используется для SQL-запросов. Атакающий может вставить SQLi в JSON, XML и использовать разные кодировки для обхода защиты: 
+```xml
+<stockCheck> 
+   <productId>123</productId> 
+   <storeId>999 &#x53;ELECT * FROM information_schema.tables</storeId> </stockCheck>
+```
 ## Виды
 ### Union-based
 Когда приложение уязвимо для SQL-инъекций и результаты запроса возвращаются в ответах приложения, атакующий может использовать оператор UNION для извлечения данных из других таблиц в базе данных. Пример запроса с оператором UNION: `SELECT a, b FROM table1 UNION SELECT c, d FROM table2` (запрос вернет столбцы `a` и `c` в виде одного столбца, `b` и `d` в виде одного столбца)
