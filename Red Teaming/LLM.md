@@ -1,4 +1,9 @@
 Большие языковые модели (LLM) - это алгоритмы искусственного интеллекта, способные обрабатывать вводимые пользователем данные и создавать правдоподобные ответы путем прогнозирования последовательностей слов.
+## Источники:
+- [Web LLM Attacks PortSwigger Academy Learning Path](https://portswigger.net/web-security/learning-paths/llm-attacks)
+- [Prompt-Injection-Everywhere](https://github.com/TakSec/Prompt-Injection-Everywhere)
+- [System Prompt Leaks](https://github.com/asgeirtj/system_prompts_leaks)
+- [Prompt Hacking](https://learnprompting.org/docs/prompt_hacking/introduction)
 ## Промпт-инъекции
 ### Прямые
 #### Эксплуатирование API
