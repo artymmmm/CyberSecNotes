@@ -4,9 +4,17 @@
 - [SPbCTF A&D: образы с докер-контейнерами](https://www.youtube.com/watch?v=yvvB9KLhggI&list=PLLguubeCGWoZT2myk_-FwBt0afThSqZKu&index=11)
 ## Первые действия на вулнбоксе
 ### Подключение к VPN
+#### OpenVPN
 - Linux: `apt install openvpn`, `openvpn --config config.ovpn`
 - Windows: [Openvpn](https://openvpn.net/community/)
 - MacOS: `brew install openvpn`, [Tunnelblick](https://tunnelblick.net/downloads.html)
+#### WireGuard
+- Linux: 
+	1. `sudo apt install wireguard wireguard-tools`
+	2. `sudo wg-quick up <путь до файла .conf>`
+- MacOS:  
+	1. `brew install wireguard-tools`
+	2. `sudo wg-quick up <путь до файла .conf>`
 ### Информация о сети
 - `ifconfig` - посмотреть, какой IP в VPN  
 - `route -n` - посмотреть, докуда можно достучаться через VPN
