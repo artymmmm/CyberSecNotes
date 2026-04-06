@@ -38,7 +38,7 @@ TICK_LENGTH=60000
 
 # ПОМЕНЯТЬ!
 # The flag format in regex
-FLAG_REGEX="/^\w{31}=$/"
+FLAG_REGEX="\w{31}="
 
 # ПОМЕНЯТЬ!
 # VM IP (inside gamenet)

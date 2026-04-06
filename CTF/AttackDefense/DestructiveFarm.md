@@ -14,7 +14,7 @@ CONFIG = {
     # fetch FLAG_FORMAT from sploits' stdout.
     'TEAMS': {'Team #{}'.format(i): '10.0.0.{}'.format(i)
               for i in range(1, 29 + 1)},
-    'FLAG_FORMAT': r'^\w{31}=$',
+    'FLAG_FORMAT': r'\w{31}=',
 	
 	# ПОМЕНЯТЬ!
     # This configures how and where to submit flags.
