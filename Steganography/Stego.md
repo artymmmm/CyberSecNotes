@@ -17,6 +17,7 @@
 - [stegsolve](http://www.caesum.com/handbook/Stegsolve.jar): XOR, каналы, битовые плоскости
 - [steghide](https://github.com/StegHigh/steghide): ПО для создания задач, часто требуется пароль, JPEG
 - [StegOnline](https://georgeom.net/StegOnline/)
+- [apngdis](https://apngdis.sourceforge.net/)
 ## Аудио
 
 ### Least Significant Bit (LSB)
@@ -30,6 +31,9 @@
 ## Текст
 ### Невидимые символы
 Могут использоваться zero-width символы, которые не отображаются, но присутствуют в тексте. Их можно использовать как биты.  Аналогично пробелы и табы могут использоваться как биты.
+### Омоглифы
+Данные могут быть спрятаны в строке с помошью омоглифов.
 ### Инструменты
 - [zwsp-tool](https://github.com/TwistAtom/ZWSP-Tool)
 - [stegsnow](https://www.kali.org/tools/stegsnow/)
+- [Омоглифы](https://holloway.nz/steg/)
