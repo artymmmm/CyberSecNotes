@@ -1,6 +1,6 @@
 1. `git clone https://github.com/OpenAttackDefenseTools/tulip.git`
 2. `cd tulip`
-3. `mkdir services/pcaps`
+3. `mkdir services/pcap`
 4. `cp .env.example .env`
 5. `vim .env`:
 ```
@@ -123,16 +123,33 @@ FLAG_VALIDATOR_TEAM=42
 7. `chmod 700 ~/.ssh`
 8. `ssh-keygen -t ed25519 -a 100 -f ~/.ssh/vulnbox_pcap -C "pcap-sync"`
 9. `sudo useradd -m -s /bin/bash pcapsync` (на вулнбоксе)
-10. `sudo mkdir -p /pcaps` (на вулнбоксе)
+10. `sudo mkdir -p /home/pcapsync/pcaps` (на вулнбоксе)
 11. `sudo chown root:pcapsync /home/pcapsync/pcaps` (на вулнбоксе)
 12. `sudo chmod 750 /home/pcapsync/pcaps` (на вулнбоксе)
 13. `sudo usermod -aG pcapsync pcapsync` (на вулнбоксе)
 14. `sudo -u pcapsync mkdir -p /home/pcapsync/.ssh` (на вулнбоксе)
 15. `sudo -u pcapsync chmod 700 /home/pcapsync/.ssh` (на вулнбоксе)
-16. `ssh-copy-id -i ~/.ssh/vulnbox_pcap.pub pcapsync@<VULNBOX_IP>`
-17. `ssh -i ~/.ssh/vulnbox_pcap pcapsync@<VULNBOX_IP>` (тест логина без пароля)
-18. `sudo tcpdump -i eth0 -n -s 0 -G 180 -Z root -w '/home/pcapsync/pcaps/traffic_%Y-%m-%d_%H-%M-%S.pcap'`
-19. `vim ~/.ssh/config` (заменить IP в конфиге!):
+16. (на вулнбоксе)
+```bash
+sudo tee /usr/local/bin/pcap-finished.sh >/dev/null <<'EOF'  
+#!/usr/bin/env sh  
+set -eu  
+  
+f="$1"  
+  
+case "$f" in  
+*.pcap.tmp)  
+mv -- "$f" "${f%.tmp}"  
+;;  
+esac  
+EOF
+```
+
+17. `sudo chmod +x /usr/local/bin/pcap-finished.sh` (на вулнбоксе)
+18. `ssh-copy-id -i ~/.ssh/vulnbox_pcap.pub pcapsync@<VULNBOX_IP>`
+19. `ssh -i ~/.ssh/vulnbox_pcap pcapsync@<VULNBOX_IP>` (тест логина без пароля)
+20. `sudo tcpdump -i eth0 -n -s 0 -B 8192 -G 180 -Z root -w '/home/pcapsync/pcaps/traffic_%Y-%m-%d_%H-%M-%S.pcap.tmp' -z /usr/local/bin/pcap-finished.sh 2>>/var/log/tcpdump-pcap.log` (на вулнбоксе)
+21. `vim ~/.ssh/config` (заменить IP в конфиге!):
 ```
 Host vulnbox-pcap
     HostName 10.0.0.2
@@ -149,7 +166,7 @@ Host vulnbox-pcap
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEST="/home/user/ctf/tulip/services/pcap/`"
+DEST="/home/user/ctf/tulip/services/pcap/"
 HOST="vulnbox-pcap"
 
 mkdir -p "$DEST"

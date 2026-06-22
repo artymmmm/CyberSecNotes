@@ -1,7 +1,7 @@
 1. `git clone https://github.com/DestructiveVoice/DestructiveFarm`
 2. `cd DestructiveFarm`
-3. `python3 -m venv farm_venv`
-4. `source farm_venv/bin/activate`
+3. `python3 -m venv .venv`
+4. `source .venv/bin/activate`
 5. `python3 -m pip install -r requirements.txt`
 6. `rm flags.sqlite`
 7. `vim server/config.py`:
@@ -57,4 +57,4 @@ CONFIG = {
 ```
 
 8. `./server/start_server.sh`
-9. 
+9. Предоставить команде `http://<ip>:5000` и пароль для входа в UI через браузер.
