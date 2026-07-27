@@ -123,13 +123,14 @@ FLAG_VALIDATOR_TEAM=42
 7. `chmod 700 ~/.ssh`
 8. `ssh-keygen -t ed25519 -a 100 -f ~/.ssh/vulnbox_pcap -C "pcap-sync"`
 9. `sudo useradd -m -s /bin/bash pcapsync` (на вулнбоксе)
-10. `sudo mkdir -p /home/pcapsync/pcaps` (на вулнбоксе)
-11. `sudo chown root:pcapsync /home/pcapsync/pcaps` (на вулнбоксе)
-12. `sudo chmod 750 /home/pcapsync/pcaps` (на вулнбоксе)
-13. `sudo usermod -aG pcapsync pcapsync` (на вулнбоксе)
-14. `sudo -u pcapsync mkdir -p /home/pcapsync/.ssh` (на вулнбоксе)
-15. `sudo -u pcapsync chmod 700 /home/pcapsync/.ssh` (на вулнбоксе)
-16. (на вулнбоксе)
+10. sudo passwd pcapsync
+11. `sudo mkdir -p /home/pcapsync/pcaps` (на вулнбоксе)
+12. `sudo chown root:pcapsync /home/pcapsync/pcaps` (на вулнбоксе)
+13. `sudo chmod 750 /home/pcapsync/pcaps` (на вулнбоксе)
+14. `sudo usermod -aG pcapsync pcapsync` (на вулнбоксе)
+15. `sudo -u pcapsync mkdir -p /home/pcapsync/.ssh` (на вулнбоксе)
+16. `sudo -u pcapsync chmod 700 /home/pcapsync/.ssh` (на вулнбоксе)
+17. (на вулнбоксе)
 ```bash
 sudo tee /usr/local/bin/pcap-finished.sh >/dev/null <<'EOF'  
 #!/usr/bin/env sh  
@@ -148,7 +149,7 @@ EOF
 17. `sudo chmod +x /usr/local/bin/pcap-finished.sh` (на вулнбоксе)
 18. `ssh-copy-id -i ~/.ssh/vulnbox_pcap.pub pcapsync@<VULNBOX_IP>`
 19. `ssh -i ~/.ssh/vulnbox_pcap pcapsync@<VULNBOX_IP>` (тест логина без пароля)
-20. `sudo tcpdump -i eth0 -n -s 0 -B 8192 -G 180 -Z root -w '/home/pcapsync/pcaps/traffic_%Y-%m-%d_%H-%M-%S.pcap.tmp' -z /usr/local/bin/pcap-finished.sh 2>>/var/log/tcpdump-pcap.log` (на вулнбоксе)
+20. `sudo sh -c "tcpdump -i eth0 -n -s 0 -B 8192 -G 180 -Z root -w '/home/pcapsync/pcaps/traffic_%Y-%m-%d_%H-%M-%S.pcap.tmp' -z /usr/local/bin/pcap-finished.sh 2>>/var/log/tcpdump-pcap.log"` (на вулнбоксе)
 21. `vim ~/.ssh/config` (заменить IP в конфиге!):
 ```
 Host vulnbox-pcap
