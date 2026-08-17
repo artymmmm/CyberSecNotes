@@ -1,6 +1,7 @@
 XXE реализуется путем внедрения в XML внешних сущностей (файл сервера или URL). 
 ## Источники информации
 - [PayloadAllTheThings XXE Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XXE%20Injection)
+- Codeby Academy WAPT
 ## Общая информация
 Пример XML: 
 ```XML

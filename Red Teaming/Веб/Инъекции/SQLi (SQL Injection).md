@@ -4,6 +4,7 @@ SQL-инъекция - это уязвимость веб-безопасност
 - [SQLi Cheat Sheet PortSwigger Academy](https://portswigger.net/web-security/sql-injection/cheat-sheet)
 - [PayloadAllTheThings SQL Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection)
 - [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
+- Codeby Academy WAPT
 ## Инструменты
 - [sqlmap](https://github.com/sqlmapproject/sqlmap): `sqlmap -u <url> --data <login=1&password=1>`, `sqlmap -u <url> --cookie='id=1; PHPSESSID=abcdef' -p 'id' --param-filter='COOKIE' --skip='PHPSESSID' --level=2` (SQLi в куки `id`)
 ## Обнаружение SQLi
