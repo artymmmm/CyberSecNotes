@@ -1,9 +1,11 @@
 Инъекции команд ОС позволяют атакующему выполнять команды ОС на сервере, на котором размещено веб-приложение
 ## Linux Terminal
-- `<command> ; <command>`
-- `<command> | <command>`
-- ``echo `<comand>` `` ``
-- `echo $(<comand>)
+- `<command 1> ; <command 2>` - выполняется `command 1`, после чего выполняется `command 2` 
+- `<command 1> | <command 2>` - направляет результат выполнения `command 1` в `command 2`
+- `<command 1> && <command 2>` - если выполнится `command 1`, то выполнится `command 2`
+- `<command 1> || <command 2>` - если не выполнится `command 1`, то выполнится `command 2`
+- `` `<command>` `` / ``echo `<command>` `` - выполнится `command`
+- `$(<command>)` / `echo $(<command>)` - выполнится `command`
 - `& echo <command>`
 - `& echo <command> &`
 ## Полезные команды ОС
