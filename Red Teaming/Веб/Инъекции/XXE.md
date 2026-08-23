@@ -1,7 +1,6 @@
 XXE реализуется путем внедрения в XML внешних сущностей (файл сервера или URL). 
 ## Источники информации
 - [PayloadAllTheThings XXE Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XXE%20Injection)
-- Codeby Academy WAPT
 ## Инструменты
 - [dtd-finder](https://github.com/GoSecure/dtd-finder/tree/master/list) - поиск файлов DTD в файлов системе
 ## Общая информация
