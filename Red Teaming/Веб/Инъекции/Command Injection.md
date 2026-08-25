@@ -2,6 +2,8 @@
 ## Источники информации
 - [PayloadAllTheThings Command Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Command%20Injection)
 - [HackTricks Command Injection](https://hacktricks.wiki/en/pentesting-web/command-injection.html)
+## Инструменты
+- [Commix](https://github.com/commixproject/commix) - Automated All-in-One OS Command Injection Exploitation Tool
 ## Linux Terminal
 - `<command 1> ; <command 2>` - выполняется `command 1`, после чего выполняется `command 2` 
 - `<command 1> | <command 2>` - направляет результат выполнения `command 1` в `command 2`
@@ -76,4 +78,3 @@
 Метод заключается в перенаправлении вывода выполнения команды в файл по указанному пути. Дальше атакующий сможет прочитать содержимое файла. Например, можно записать файл в папку `/static`, которая, как правило, содержит в себе файлы стилей или JS-скриптов. Данные файлы загружаются при нормальном взаимодействии с веб-приложением, а значит доступ к ним открытый. Пример: `1.1.1.1; whoami > /var/www/html/static/outputlog.txt`
 ## Обход защиты
 Варианты обхода: [HackTricks Bypass Linux Restrictions](https://hacktricks.wiki/en/linux-hardening/linux-basics/bypass-linux-restrictions/index.html#references)
-
