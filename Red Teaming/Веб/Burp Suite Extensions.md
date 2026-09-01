@@ -1,0 +1,3 @@
+- [GAP (Get All Parameters, Links, and Words)](https://portswigger.net/bappstore/815bb4ab64e240618dc673d65016e919) - получение всех параметров
+- [Agartha](https://portswigger.net/bappstore/b4915681326648b1a12e4059d71bc909) - генератор пейлоадов
+- [Hackvertor](https://portswigger.net/bappstore/65033cbd2c344fbabe57ac060b5dd100) - кодинг, декодинг, шифрование и т.п.
