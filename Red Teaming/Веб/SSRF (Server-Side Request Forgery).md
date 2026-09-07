@@ -3,8 +3,7 @@ Server-side request forgery (SSRF) - уязвимость, которая поз
 - [SSRF Learning Path PortSwigger Academy](https://portswigger.net/web-security/learning-paths/ssrf-attacks)
 - [PayloadAllTheThings SSRF](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery)
 - [HackTricks SSRF](https://hacktricks.wiki/en/pentesting-web/ssrf-server-side-request-forgery/index.html#ssrf-server-side-request-forgery)
-- [SSRF Payloads 1](https://gist.github.com/ResistanceIsUseless/0c2df8ef3604a654e390c5d0070eaad6)
-- [SSRF Payloads 2](https://github.com/InfoSecWarrior/Offensive-Payloads/blob/main/Server-Side-Request-Forgery-Payloads.txt)
+- [SSRF Payloads 1](https://gist.github.com/ResistanceIsUseless/0c2df8ef3604a654e390c5d0070eaad6), [SSRF Payloads 2](https://github.com/InfoSecWarrior/Offensive-Payloads/blob/main/Server-Side-Request-Forgery-Payloads.txt)
 
 ## SSRF-атака на сервер
 - Атакующий выполняет запрос от сервера к самому себе (loopback interface: `localhost`, `127.0.0.1`), это может позволить атакующему получить доступ к страницам без необходимых прав. Например, подставив URL-адрес страницы `http://localhost/admin` в HTTP-запрос, который ожидает URL в качестве параметра, злоумышленник может получить к ней доступ:
@@ -23,6 +22,15 @@ Content-Length: 118
 
 stockApi=http://localhost:22
 ```
+### LFI через SSRF
+Некоторые парсеры поддерживают не только схемы `http` или `https`, но и `file`, `ldap`, `gopher`, `dict`, `ftp`. Это может привести LFI (получение доступа к информации с помощью специально сформированного запроса) путём включения файла через схему `file`.
+```HTTP
+POST /product/stock HTTP/1.0 
+Content-Type: application/x-www-form-urlencoded 
+Content-Length: 118 
+
+stockApi=file:///etc/passwd  
+```
 ## SSRF-атака на внутренние бэкенд системы
 - Атакующий, отправив запрос с сервера, может получить доступ к другим системам во внутренней сети:
 ```HTTP
@@ -32,15 +40,6 @@ Content-Length: 118
 
 stockApi=http://192.168.0.68/admin  
 ```
-## LFI через SSRF
-Некоторые парсеры поддерживают не только схемы `http` или `https`, но и `file`, `ldap`, `gopher`, `dict`, `ftp`. Это может привести LFI (получение доступа к информации с помощью специально сформированного запроса) путём включения файла через схему `file`.
-```HTTP
-POST /product/stock HTTP/1.0 
-Content-Type: application/x-www-form-urlencoded 
-Content-Length: 118 
-
-stockApi=file:///etc/passwd  
-```
 ## Распространенные точки входа
 1. Параметры: GET-запрос, POST-запрос, GraphQL, JSON-тело и другие 
 2. PDF converter (HTML injecttion): код уязвим для SSRF, когда в нем используется устаревшая версия конвертера wkhtmltopdf или когда он обрабатывается на самом сервере
@@ -49,9 +48,11 @@ stockApi=file:///etc/passwd
 ### Обход черных списков
 Приложение может блокировать запросы, содержащие имена хостов `localhost`, `127.0.0.1` или чувствительные URL, например, `/admin`. Атакующий может обойти фильтры следующим образом:
 - Альтернативные представления IP-адреса `127.0.0.1`: `2130706433`, `017700000001`, `127.1`, `0x7F000001`.
-- Домен, который резолвится в `127.0.0.1`: `spoofed.burpcollaborator.net`.
+- Домен, который резолвится в `127.0.0.1`: `spoofed.burpcollaborator.net`, `localtest.me`.
 - Обфускация с помощью URL-кодирования и разных регистров.
-- URL, который контролирует атакующий и который перенаправляет на целевой URL. Можно использовать разные коды перенаправления, а также разные протоколы для целевого URL. Например, переключение с URL-адреса `http:` на URL-адрес `https:` во время перенаправления.
+- URL, который контролирует атакующий и который перенаправляет на целевой URL. Можно использовать разные коды перенаправления, а также разные протоколы для целевого URL. Например, переключение с URL-адреса `http:` на URL-адрес `https:` во время перенаправления
+- DNS rebinding ([сервис для тестирования атаки](https://lock.cmpxchg8b.com/rebinder.html))
+- Перенаправление с сайта злоумышленника на `http://localhost/` или `file:///etc/passwd` (сработает, если атакуемый сервер следует редиректам)
 ### Обход белых списков
 Приложение может использовать белые списки для проверки URL. Приложение может искать в начале или просто наличие в любом месте определенной строки в URL. Эту проверку можно обойти следующим образом:
 - Встроить учетные данные в URL-адрес перед именем хоста, используя символ `@`: `https://expected-host:fakepassword@evil-host`
